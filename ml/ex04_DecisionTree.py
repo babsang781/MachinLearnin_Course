@@ -76,5 +76,85 @@ tree_model.score(X_train, y_train)
 
 tree_model.score(X_test, y_test)
 
+# 시각화
+
+!pip install graphviz
+
+import os
+os.environ["PATH"]+=os.pathsep+'C:/Program Files/Graphviz/bin/'
+
+from sklearn.tree import export_graphviz
+export_graphviz(tree_model, out_file='tree.dot',
+               class_names=['p','e'],
+               feature_names=X_one_hot.columns,
+               impurity=True,
+               filled=True)
+
+import graphviz
+
+with open('tree.dot', encoding='UTF8') as f:
+    dot_graph = f.read()
+
+display(graphviz.Source(dot_graph))
+
+from subprocess import check_call
+check_call(['dot','-Tpng','tree.dot','-o','tree.png'])
+
+# 과대적합 제어
+
+## leaf node : 10 개로 조정
+### 1. leaf node 의 수를 10개로 조정한 모델
+### 2. 학습
+### 3. 평가
+### 4. 시각화
+
+from sklearn.tree import DecisionTreeClassifier
+tree_model2 = DecisionTreeClassifier(max_leaf_nodes=10)
+
+tree_model2.fit(X_train, y_train)
+
+tree_model2.score(X_train, y_train)
+
+tree_model2.score(X_test, y_test)
+
+from sklearn.tree import export_graphviz
+export_graphviz(tree_model2, out_file='tree2.dot',
+               class_names=['p','e'],
+               feature_names=X_one_hot.columns,
+               impurity=True,
+               filled=True)
+
+import graphviz
+with open('tree2.dot', encoding='UTF8') as f:dot_graph = f.read()
+display(graphviz.Source(dot_graph))
+
+### png로 바꾸는 코드
+from subprocess import check_call
+check_call(['dot','-Tpng','tree2.dot','-o','tree2.png'])
+
+
+# 교차검증
+
+from sklearn.model_selection import cross_val_score
+### 네 가지가 필요
+### 사용할 모델, 문제, 정답,데이터 분할 수(cv)
+cross_val_score(tree_model, X_train, y_train, cv=5).mean()
+### 앞으로 데이터 결과 값은 이전에 낸 스코어 보다 이 값을 더 신뢰하는 게 좋음
+
+# 특성 선택
+
+### 특성의 중요도를 볼 수 있는 것
+### 117개 컬럼 각 중요도의 합은 1
+fi = tree_model.feature_importances_
+
+fi_df = pd.DataFrame(fi,index = X_train.columns)
+fi_df.sort_values( by = 0, ascending = False).head(10)
+
+### 추후 분석 권장 방식
+tree_model = DecisionTreeClassifier(max_leaf_nodes=10)
+
+tree_model.fit(X_train, y_train)
+
+cross_val_score(tree_model, X_train, y_train, cv=5).mean()
 
 
