@@ -5,6 +5,8 @@
 # 데이터 수집
 
 import pandas as pd 
+
+import pandas as pd 
 train = pd.read_csv('./data/train.csv') 
 test = pd.read_csv('./data/test.csv')
 
@@ -157,4 +159,187 @@ test['Family_size'] = test['SibSp'] + test['Parch'] + 1
 
 sns.countplot(data=train, x='Family_size', hue='Survived')
 
-### 다음 시간에는 해당 내용 특징별로 범주화 할 예정, 
+### 다음 시간에는 해당 내용 특징별로 범주화(alone, small, large로) 할 예정, 
+### bins 라는 속성에 구간에 대한 정보를 구성, 0 초과 1 이하,... 3구간 구성
+bins = [0, 1, 4, 20]  # 20 이라고 해준 것은 test 데이터에 11보다 더 큰 값이 있을 수 있기 떄문
+labels = ['Alone', 'Small', 'Large']  # 구간에 대한 범주 이름
+
+train['Family_group'] = pd.cut(train['Family_size'], bins=bins, labels=labels)
+test['Family_group'] = pd.cut(test['Family_size'], bins=bins, labels=labels)
+
+train.head()
+
+### Family_group 시각화
+
+train.info()
+
+## Text 데이터
+### Name, Ticket 
+### 비정형 데이터 ( 사용하는 단어나 기이가 전부 다름) 
+### 비정형 데이터를 정형 데이터로 변경하여 사용할 수 있게 하기
+
+train['Name']
+
+train['Name'][0].split(',')[1].split('.')[0].strip()
+
+def split_name(name):  
+    return name.split(',')[1].split('.')[0].strip()
+
+train['Name'] = train['Name'].apply(split_name)
+test['Name'] = test['Name'].apply(split_name)
+
+train['Name'].value_counts()
+
+## 라벨 인코딩: 범주형 값을 하나 하나 지정하여 변경하는 작업
+### dictionary 를 만들어서 변경 적용하는 방식으로 진행
+
+convert_title_dic = {
+    'Mr' : 'Mr' , 
+    'Mrs' : 'Mrs', 
+    'Miss' : 'Miss', 
+    'Master' : 'Master', 
+    'Don' : 'Other', 
+    'Rev' : 'Rev', 
+    'Dr': 'Dr', 
+    'Mme' : 'Other', 
+    'Ms' : 'Other',
+    'Major' : 'Other',
+    'Lady' : 'Other',
+    'Sir' : 'Other',
+    'Mlle' : 'Other',
+    'Col' : 'Other', 
+    'Capt' : 'Other', 
+    'the Countess' : 'Other',
+    'Jonkheer' : 'Other',
+    'Dona' : 'Other'
+}
+
+train['Name'] = train['Name'].map(convert_title_dic)
+test['Name'] = test['Name'].map(convert_title_dic)
+train['Name'].value_counts()
+
+#### 또다른방법 replace 함수를 사용하는 방법
+#### data['Initial'].replace(['Mlle','Mme','Ms','Dr','Major','Lady','Countess','Jonkheer','Col','Rev','Capt','Sir','Don'],['Miss','Miss','Miss','Mr','Mr','Mrs','Mrs','Other','Other','Other','Mr','Mr','Mr'],inplace=True)
+
+### Tickets 전처리하기
+
+train['Ticket'].unique()
+
+#### 데이터의 분포가 너무 넓고 공통점이 발견되지 않음. 그나마도 중복값 또한 존재함.
+#### 데이터를 이해할 수 있는 정보가 없어서 활용할 수 없음.-> 컬럼 삭제
+#### 이 컬럼을 그대로 사용하면 과대적합에 걸릴 수 있음
+
+train.drop('Ticket', axis = 1, inplace = True)
+test.drop('Ticket', axis = 1, inplace = True)
+
+train.shape, test.shape
+
+## 글자 데이터를 숫자 데이터로 변경
+### 원핫 인코딩
+### Name, Sex , Cabin, Embarked , Family_group
+
+categorical_feature = ['Name', 'Sex', 'Cabin', 'Embarked', 'Family_group']
+
+train.drop('Survived', axis = 1, inplace = True)
+
+#### 원핫 인코딩 전에 train 과  test 를 합침
+#### 왜냐하면 다른 범주현 변수가 있을 경우, 원핫 인코딩을 진행하면, 컬럼이 다르게 구성되는 문제가 생김
+##### 학습은 가능하지만 컬럼이 달라서 평가를 할 수 없음.
+combined = pd.concat([train, test], ignore_index = True)
+#### ignore_index 속성은 default 가 false 값, True 로 바꾸지 않으면 index 값을 그대로 가져옴.
+
+combined
+
+### 원핫 인코딩 진행
+one_hot = pd.get_dummies( combined[categorical_feature] )
+one_hot.shape
+
+#### 원핫 실행한 categorical_feature 컬럼들 삭제
+combined.drop(categorical_feature, axis = 1, inplace = True)
+
+import matplotlib.pyplot as plt
+
+# Correlation Between The Features
+sns.heatmap(combined.corr(),annot=True,cmap='RdYlGn',linewidths=0.2) #data.corr()-->correlation matrix
+fig=plt.gcf()
+fig.set_size_inches(10,8)
+plt.show()
+
+
+
+
+
+combined = pd.concat([combined, one_hot], axis = 1)
+
+combined.shape
+
+# 모델 선택 및 하이퍼 파라미터 튜닝
+## 데이터 나누기
+
+X_train = combined.iloc[:891][['Pclass', 'Fare', 'Sex_male','Sex_female', 'Family_group_Alone', 'Family_group_Small']]
+X_test = combined.iloc[891:][['Pclass', 'Fare', 'Sex_male','Sex_female', 'Family_group_Alone', 'Family_group_Small']]
+
+X_train.shape, X_test.shape, y_train.shape
+
+from sklearn.neighbors import KNeighborsClassifier #KNN
+model=KNeighborsClassifier() 
+model.fit(X_train,y_train)
+print(model.score(X_train,y_train))
+
+prediction5=model.predict(X_test)
+
+
+
+
+
+
+from sklearn.tree import DecisionTreeClassifier
+
+tree_model = DecisionTreeClassifier()
+
+tree_model.fit(X_train, y_train)
+
+tree_model.score(X_train, y_train)
+
+pre = tree_model.predict(X_test)
+
+gender_sub = pd.read_csv('./data/gender_submission.csv')
+
+# 모델의 예측 결과를 제출 양식에 담기
+gender_sub['Survived'] = pre 
+gender_sub.to_csv('mysub05.csv', index = False)
+
+## 교차검증
+
+from sklearn.model_selection import cross_val_score
+
+result = cross_val_score(tree_model,X_train, y_train, cv=5)
+result.mean()
+
+## RandomForest 써보기
+
+from sklearn.ensemble import RandomForestClassifier #Random Forest
+forest = RandomForestClassifier(n_estimators=200)
+#### 간단히 말하면 결정트리가 여러개 있는 것
+#### n_estimators 결정트리의 수
+
+model=RandomForestClassifier(n_estimators=100)
+model.fit(X_train,y_train)
+
+print(model.score(X_train,y_train))
+
+prediction5=model.predict(X_test)
+
+
+result = cross_val_score(model,X_train, y_train, cv=5)
+result.mean()
+
+# 모델의 예측 결과를 제출 양식에 담기
+pre = model.predict(X_test)
+gender_sub['Survived'] = pre 
+gender_sub.to_csv('mysub06.csv', index = False)
+
+
+
+
+
