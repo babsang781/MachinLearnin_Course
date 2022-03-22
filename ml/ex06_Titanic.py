@@ -339,7 +339,111 @@ pre = model.predict(X_test)
 gender_sub['Survived'] = pre 
 gender_sub.to_csv('mysub06.csv', index = False)
 
+# 데이터 스케일링
+
+from sklearn.preprocessing import RobustScaler, StandardScaler
+
+rb_scaler =RobustScaler()
+
+## rb_scaler 모델 학습, rb_scaler 의 기능적 특성 스케일링을 진행
+rb_scaler.fit(X_train)  ### 어떤 컬럼에는 어떤 값으로 변경해야 하는지
+
+### 데이터에 담아줘야함 : 이유는 제대로 못 들음 다시 듣기
+X_train_rb = rb_scaler.transform(X_train)
+X_test_rb = rb_scaler.transform(X_test)
+
+### 두 가지 데이터를 간단히 살펴 봄
+X_train.head()
+
+X_train_rb[:5]
+
+## rb 데이터를 통해 교차 검증 테스트
+
+result = cross_val_score(model, X_train, y_train, cv=5)
+result.mean()
+
+### rb 데이터를 통해 교차 검증 테스트
+result = cross_val_score(model, X_train_rb, y_train, cv=5)
+result.mean()
+
+## rb 데이터를 통해 KNN 모델 테스트
+
+from sklearn.neighbors import KNeighborsClassifier #KNN
+knn_model=KNeighborsClassifier()
+
+knn_model.fit(X_train,y_train)
+
+### 이전 데이터로 우선 스코어 확인
+result = cross_val_score(knn_model, X_train, y_train, cv=5)
+result.mean()
+
+### rb 데이터로 스코어 확인
+result = cross_val_score(knn_model, X_train_rb, y_train, cv=5)
+result.mean()
+
+## StandardScaler 로 해보기
+
+std_scaler =StandardScaler()
+## rb_scaler 모델 학습, rb_scaler 의 기능적 특성 스케일링을 진행
+std_scaler.fit(X_train)  ### 어떤 컬럼에는 어떤 값으로 변경해야 하는지
+
+### 데이터에 담아줘야함 : 이유는 제대로 못 들음 다시 듣기
+X_train_std = std_scaler.transform(X_train)
+X_test_std = std_scaler.transform(X_test)
+
+result = cross_val_score(model, X_train, y_train, cv=5)
+result.mean()
+
+### std 데이터를 통해 교차 검증 테스트
+result = cross_val_score(model, X_train_std, y_train, cv=5)
+result.mean()
+
+##뭔 가 코드는 쳤는데 마음에 안 드는 전개 과정이네
 
 
 
+model.feature_importances_
+
+# feature importance 코드
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 특성 중요도 시각화 하기
+def plot_feature_importances(model, n_features):
+    # 축 번호별로 중요도 그래프를 그림
+    plt.barh(range(n_features), model.feature_importances_)
+    # 축 번호에 축 이름을 출력
+    plt.yticks(np.arange(n_features), X_train.columns)
+    plt.xlabel("attr importances")
+    plt.ylabel("attr")
+    plt.ylim(-1, n_features)
+plt.show()
+
+plot_feature_importances(model, X_train.shape[1])
+
+## 5.5 AdaBoost
+
+from sklearn.ensemble import AdaBoostClassifier
+
+adaboost = AdaBoostClassifier(n_estimators=50)
+
+adaboost.fit(X_train, y_train)
+
+### std 데이터를 통해 교차 검증 테스트
+result = cross_val_score(adaboost, X_train, y_train, cv=5)
+result.mean()
+
+plot_feature_importances(adaboost, X_train.shape[1])
+
+from sklearn.ensemble import GradientBoostingClassifier
+
+gradientboost = GradientBoostingClassifier(n_estimators=300)
+
+gradientboost.fit(X_train, y_train)
+
+result = cross_val_score(gradientboost, X_train, y_train, cv=5)
+result.mean()
+
+plot_feature_importances(gradientboost, X_train.shape[1])
 
