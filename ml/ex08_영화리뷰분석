@@ -1,0 +1,200 @@
+# 문제 정의
+### 영화 리뷰 데이터 셋을 활용해서 긍정 / 부정을 구분
+### 긍정 / 부정 리뷰에서 자주 사용되는 단어 확인
+
+# 데이터 수집
+### Large movie datset 다운 완료 : http://ai.stanford.edu/~amaas/data/sentiment/
+
+#### 파일을 읽어오는 함수
+from sklearn.datasets import load_files 
+
+#### data url 변수 만들기
+train_data_url = 'data/aclImdb/train'
+test_data_url = 'data/aclImdb/test'
+
+#### 
+reviews_train = load_files(train_data_url, shuffle = True )
+
+reviews_test = load_files(test_data_url, shuffle = True )
+
+reviews_train.keys()
+
+reviews_test.target
+
+print(len(reviews_train.data))
+print(len(reviews_test.data))
+
+reviews_train.target
+
+# 데이터 전처리
+
+### 데이터 전처리를 위해서 첫번째 데이터를 보기
+reviews_train.data[0]
+#### 처음 시작에 데이터형태인 'b' 와 중간중간에 있는 <br/> 태그를 space' '로 변경
+
+## 태그 제거
+ㅡ
+
+
+
+reviews_train.data[0].replace(b"<br />", b" ")
+
+### 시간단축을 위한 데이터 개수 조정 25,000 -> 1,000
+X_train = reviews_train.data[:1000] 
+X_test = reviews_test.data[:1000] 
+
+y_train = reviews_train.target[:1000]
+y_test = reviews_test.target[:1000]
+
+### 위 데이터에 replace 적용
+#### 리스트 래포? 기능을 이용한 한 줄 코드
+X_train = [ txt.replace(b"<br />", b" ")  for txt in X_train ]
+X_test = [ txt.replace(b"<br />", b" ")  for txt in X_test ]
+
+#### 리스트 래포? 기능을 이용한 한 줄 코드
+# X_train = []
+# for txt in X_train:
+#     X_train.append(txt.replace(b"<br />", b" "))
+# -> for, append 기능을 한줄로 변환
+# X_train = [ txt.replace(b"<br />", b" ")  for txt in X_train ]
+
+## 토큰화 
+### 예시 
+
+#### BOW 를 사용하기 위한 import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+testBOW = CountVectorizer()
+
+text = [
+    '혹시 자소서 포함된 이력서 , 자소서 양식을 미리 받아볼수 있나요?',
+    '다음주월욜에 하는게 자소서가 좀 적혀있어야 한다는거죠..?',
+    '강의실 하나에서 다 모여서 진행하는건가요?',
+    '혜정이가 카드 스티커 모으는 거 좋아해요'        
+]
+
+#### 단어사전 구축 및 토큰화 실행
+testBOW.fit(text)
+
+#### 21개로 구성된 단어사전이 완성됨.
+testBOW.vocabulary_
+
+testBOW.transform(text)
+
+testBOW.transform(text).toarray()
+
+### 실제 데이터에 적용
+
+#### mma,mindidofpf
+movie_bow = CountVectorizer(min_df = 20, max_df =2000, ngram_range=(1,3))
+movie_bow.fit(X_train)
+X_train = movie_bow.transform(X_train)
+X_test = movie_bow.transform(X_test)
+
+#### movie_bow 라는 BOW 를 생성 - 1000개 리뷰로 학습 토큰화, 진행
+movie_bow = CountVectorizer()
+movie_bow.fit(X_train)
+X_train = movie_bow.transform(X_train)
+X_test = movie_bow.transform(X_test)
+
+
+
+#### 데이터 개수 확인
+X_train.shape , X_test.shape
+
+# 탐색적 데이터 분석 
+
+# 모델 선택 및 하이퍼 파라미터 튜닝
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import LinearSVC
+
+## 모델선택을 위해서 다양한 모델을 실행, 기본 값 중 잘 나오는 것을 선택할 것임.
+tree = DecisionTreeClassifier()
+svm = LinearSVC()
+knn = KNeighborsClassifier()
+
+## 교차 검증
+
+from sklearn.model_selection import cross_val_score
+
+cross_val_score(tree, X_train, y_train, cv=5).mean()
+
+cross_val_score(svm, X_train, y_train, cv=5).mean()
+
+cross_val_score(knn, X_train, y_train, cv=5).mean()
+
+# 학습
+
+svm.fit(X_train, y_train)
+
+# 평가
+
+svm.score(X_train, y_train)
+
+svm.score(X_test, y_test)
+
+## 예측
+#### 예측 데이터도 동일한 순서대로 처리해주어야 함
+#### 데이터 > 토큰화 > 수치화
+
+reviews = ["Wow. This is one of the most mind bending things in media. It makes Age Of Ultron better, it is very funny, the characters are so suprising and it also plays well into the MCU in other ways. The episode before the final one has great writing and the final showdowns are like watching an MCU film. This whole thing would be great as an MCU film, the way it plays. The return of people blipped also was interesting here and the story of Infinity War playing into the Vision storyline and how Wanda really just wanted more time with him. It is defismtly emotional and touching. Disney+ started off right with their first MCU tie in. The moral of this is that it seems to expose witchcraft rather then embrace it, which is good. (It might be exposing it). Jesus is our only hope.",
+            """ "We are an unusual couple, you know." "Oh, I don't think that was ever in question." Now, before I begin, there are many opinions of this show. Many fans and people just introduced to the MCU have strong opinions which has made this a very divided addition to the MCU. Critically, it's been praised and there aren't many people who don't like it. But with the unique approach, some have been upset for such the high ratings. What I'm trying to say is I ask you to bear with me and respect my opinion. If you differ with it, there's nothing you can do to change my mind. The absolute masterpiece that is WandaVision blends the style of classic sitcoms with the MCU, in which Wanda Maximoff and Vision - two super-powered beings living their ideal suburban lives - begin to suspect that everything is not as it seems. From that teaser at the Super Bowl (I believe) over a year ago, this had been something exciting to look forward to. Literally no one knew what this would be about going in, really. I refrained from all trailers to go in as blind as possible. What I got was more than what I could imagine. Trying something new is what I've hoped for in the MCU for a while. As much as I do love a good majority of their movies, there's a fixed setup for almost all. WandaVision is something totally different and just what we needed. Had this been a show outside of the MCU, I think it would still be brilliant. Each episode is designed to go through a different era of television. How they handled it worked incredibly well. There's not a way of trying to modernize these old sitcoms from the 1950s and so forth, so it's like a replication of classic television. The sets, costumes, and camera lens and moment are amazing at doing so. One of my favorite games while watching is trying to see what show this episode was mainly based on. Accomplishing this couldn't have been easy and I applaud them for how they managed to get the feel of each era perfectly. At the heart of this story are amazing performances. Elizabeth Olson hasn't had such an amazing display of acting since Martha Marcy May Marlene. So much emotion is put forth into Wanda that she is by far the most developed character in the MCU even if she came in late. There are some really heavy scenes and she portrayed those flawlessly. It doesn't feel much like watching a magical being, but we understand she's just another person in this world. Scene 8 showcases it all. Alongside her is Paul Bettany. With his character of Vision — a literal computer-god-being — it's hard to get complete range. He has such a good start with the series by delivering comedy. He's really funny in it (and Olsen too). Once the mystery starts to unfold, he builds more and more character until episode 5 when he unleashes his full capabilities. Never has Vision felt so human before. I'd also like to highlight Kathryn Hahn, because she's such an amazing actress. Playing the nosy-neighbor of Agnes must've been such a fun time. She takes up all the screen time she can get. I won't spoil a thing, but later on in the series she gets her moment — literally everyone's favorite moment — and you just love her even more. Teyonah Paris, Kat Dennings, and Randall Park also do well with their supporting roles. This is an ensemble piece for sure and the way they work off of each other shows dedication. It's hard to discuss so much without spoiling because certain things do need to be addressed, but I shall refrain. Story is where people have been divided. Some thought it took way too long to get into, and I just don't see why. It's a series, not a movie, so setup is much different. And if it were to have moved on quickly, the mystery element would've lost its momentum. Every episode has some sort of question leading up to the finale. That's where fan theories came in and caused even more disappointments. I support fan theories, but I don't base my expectation on the rest of the show. Even if I had some hopeful thoughts, I never expected them to show up later on. With expectation, you can only be disappointed. My suggestion is to not have anything in mind when going in. Questions kept building and that's what made this the most gripping show I had seen in such a long time. I would stay up till 2 a.m. for the release of the new episodes because I just had to know what would come next. With a series, there was more time to develop and think about plot and character. Most importantly, though, there was enough time to build upon the past episodes and make an enjoyable time for both the sitcom moments and the Marvel storyline. Sure, not every episode is as great as the one before or after. I don't think you'll ever find a show with each episode being perfect as ever. Take a highly regarded show like Breaking Bad. Many think of it as a perfect show, but it's not like they think every episode is perfect. To quote Steven Universe, one of my favorite shows, "if every pork chop were perfect, we wouldn't have hotdogs." If every episode were perfect, it wouldn't have that range that it has. I don't grade a show based on each episode, but rather as a whole. And throughout the duration of WandaVision, I had an absolute blast. Marvel, Matt Shakman, and the whole crew made something unforgettable. I believe this to be the greatest thing the MCU has given us. There will never be a show quite like WandaVision. Only a few shows have gotten my perfect rating, and this ranks among them. """ ,
+          ''' ( SPOILERS) Absolute garbage and a waste of time. Full of plot twists that end up being nothing. Vision having holes in his body had nothing to do with the plot. Pietro having holes in his body had nothing to do with the plot. Pietro being from X'men was just a random coincidence. Also, every time a new male character walked into the show you knew he was either a wimp or evil. They even made pietros real last name "bohner" to make fun of manhood. Imagine if a female character everyone was stoked on turned out to be some random lady named "Vachina". Also, the physical vision just flew off for no reason, and digital vision never decided to tell wanda about his existence. Why? Lazy writing. Additionally at the end rhambeaou tells wanda "they will never know what you sacrificed". What the heck?! Like maybe apologize for trapping and tormenting these people every day for like a month. How on earth is wanda the victim or the "good-guy" in this show. She is literally a villain causing everyone pain, but it is "ok" because she did it out of a place of pain. Im sorry, almost all villains do evil out of a place of pain, that doesnt make it ok. Stupid, sexist show with bad plot that treats its audience like idiots. '''
+          ]
+
+pred_review = movie_bow.transform(reviews)  # 토큰화 및 수치화
+
+svm.predict(pred_review)
+
+## 감성분석 
+#### 어떤 단어가 긍정 / 부정에 영향을 많이 주었는지 확인 
+
+#### svm 단어사전의 긍정 부정 영향 상관 계수 리스트를 워드 웨이트에 입력
+word_weight = svm.coef_
+
+#### 워드 웨이트 를 활용하기 위해, 
+
+
+
+movie_bow.vocabulary_
+
+import pandas as pd 
+df = pd.DataFrame([movie_bow.vocabulary_.keys(),
+                  movie_bow.vocabulary_.values()])
+df.head()
+
+#### 전치함수를 사용해서 행과 열을 뒤집음
+df = df.T
+df
+
+#### 1번 컬럼의 값을 기준으로 오름차순 정렬
+df_sorted = df.sort_values(by = 1)
+df_sorted 
+
+#### 단어와 상관분석 결과 값을 합침
+df_sorted['coef'] = word_weight.reshape(-1)
+df_sorted
+
+#### 값을 정렬해서 다시 저장함.
+df_sorted.sort_values(by = 'coef', inplace = True)
+df_sorted
+
+# 시각화
+#### 값의 순서대로 정렬을 했기 때문에, 상위, 하위순서로 출력데이터를 선택
+top30_df = pd.concat([
+    df_sorted.head(30), # 부정단어 30개
+    df_sorted.tail(30) # 긍정단어 30개
+])
+
+import matplotlib.pyplot as plt
+plt.figure(figsize=(15,5)) # 가로,세로 비율
+plt.bar(top30_df[0], top30_df['coef']) # x축은 단어, y축은 가중치
+plt.xticks(rotation = 90) # x축 눈금 각도 조정
+plt.show()
+
+
+
+
+
