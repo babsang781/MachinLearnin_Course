@@ -125,6 +125,7 @@ cv2.imwrite(save_file, img_gray)  # cv2.imwrite( file_path, img )
 cv2.imwrite('./img/dog_blurr.jpg', blured)
 
 # 카메라 웹캠 제어
+## 카메라, 웹캠 프레임 읽기
 
 
 
