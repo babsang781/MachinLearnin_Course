@@ -33,6 +33,7 @@ blured = cv2.filter2D(img, -1, kernel)
 cv2.imshow('origin', img)
 cv2.imshow('avrg blur', blured)
 
+### 키가 입력될 때 까지 대기
 cv2.waitKey()
 cv2.destroyAllWindows()
 
