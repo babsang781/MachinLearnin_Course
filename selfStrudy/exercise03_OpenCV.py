@@ -64,6 +64,108 @@
 # pip install --upgrade pip
 !pip install opencv-python
 
+import cv2
+import numpy as np
+
+# 예제1, file 읽기
+## cv2 가 읽고 read - 보여줌 show ! 
+
+img_file ='./img/dog.pg'   # 파일을 표시할 경로
+img= cv2.imread(img_file)    # 이미지 경로(img_file)를 cv2.imread() 로 읽어서 img 에 할당!
+
+if img is not None:                 # 경로에 문제가 있을 경우 떄문에 if 조건문으로 잡아줌
+    cv2.imshow('title_ex01', img)    # 읽은 이미지를 화면에 표시
+    cv2.waitKey()                    # 키가 입력될 때까지 대기 [default : 0 -> 무한대]
+    cv2.destroyAllWindows()          # 창 모두 닫기 
+    
+else:
+    print('No image file.')
+
+
+
+# 예제2, 흑백 IMREAD_GRAYSCALE 읽기 
+## cv2가 파일을 읽는 다양한 방식 
+
+### cv2.imread로 파일을 읽어서 담아주는데, 읽기 모드 바꾸기! 
+### cv2.imread(경로, 읽기모드)
+
+img_file ='./img/dog.jpg'
+img_gray = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE) 
+
+#  결과 출력 cv2.imshow(title, img)
+cv2.imshow('grayscale', img_gray)
+
+# 키가 입력될 때 까지 대기 millisecond 단위, 2초
+cv2.waitKey(2000)
+cv2.destroyAllWindows()
+
+## cv2.destroyAllWindows() 작업을 해주지 않으면 찐한 회색으로 이미지가 나오면서 제대로 실행되지 않음.
+
+#### 읽기 모드의 종류
+cv2.IMREAD_UNCHANGED : 이미지 그대로 출력(원본)
+cv2.IMREAD_GRAYSCALE : 1 채널, 회색조 이미지로 변환
+cv2.IMREAD_COLOR : 3채널, BGR 이미지로 변환
+cv2.IMREAD_ANYDEPTH : 이미지에 따라 16,32bit 또는 8비트로 변환
+cv2.IMREAD_ANYCOLOR : 이미지 모든 색상 형식으로 읽기
+cv2.IMREAD_REDUCED_GRAYSCALE_2 : GRAYSCALE + 이미지 크기 1/2
+cv2.IMREAD_REDUCED_COLOR_2 : COLOR + 이미지 크기 1/2
+cv2.IMREAD_REDUCED_GRAYSCALE_4 : GRAYSCALE + 이미지 크기 1/4
+cv2.IMREAD_REDUCED_COLOR_4 : COLOR + 이미지 크기 1/4
+cv2.IMREAD_REDUCED_GRAYSCALE_8 : GRAYSCALE + 이미지 크기 1/8
+cv2.IMREAD_REDUCED_COLOR_8 : COLOR + 이미지 크기 1/8
+배경이 투명인 이미지(채널이 4개)를 불러올 경우엔 UNCHANGED를 사용(나중에 따로 다루겠습니다.) 
+
+# 예제3 이미지 저장하기!
+## cv2 가 써서 저장해줌: imwrite ! 
+
+save_file = './img/dog_gray.jpg'  # 경로 변수 저장
+cv2.imwrite(save_file, img_gray)  # cv2.imwrite( file_path, file 변수 )
+
+cv2.imwrite('./img/dog_blurr.jpg', blured)
+
+# 예제4 동영상 및 카메라 프레임 읽기
+## 동영상 파일이나 연결한 카메라로부터 연속된 이미지 프레임을 읽을 수 있는 API를 제공해줌
+
+## cv2.VideoCapture( 경로 file_path 또는 index) : 비디오 캡쳐 객체 생성자 
+### index 는 연결된 카메라 장치번호 인덱스를 말함)
+### 이를 사용하는 객체로 주로 cap을 씀. 
+#### cap = cv2.VideoCapture( index )
+
+## 상기 객체 초기화 여부 확인 isOpened() : 객체 초기화 확인 True / False 반환
+### ret = cap.isOpened()
+
+## cap 객체. 영상 프레임 읽기 .read() , img 는 프레임 이미지, numpy 배열, None
+### img = cap.read() / ret = cap.read()
+
+## cap.set (id, value) : 프로퍼티 변경
+### cap.get(id) : 프로퍼티 확인
+### cap.release() : 캡쳐차원 반납
+
+
+
+
+
+
+
+# 카메라 웹캠 제어
+## 카메라, 웹캠 프레임 읽기
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 영상필터
 #### 필터는 원하는 값만 걸러내려고 할 때 사용하는 것
 #### 흐릿 또는 또렷하게 만들기도 하고, edge를 검출하고 edge 의 방향을 알아내는 등 
@@ -105,27 +207,9 @@ cv2.destroyAllWindows()
 
 
 
-# 예제2, 흑백 IMREAD_GRAYSCALE 읽기 
-# 이미지 파일을 흑백으로 읽기
-img_file ='./img/dog.jpg'
-img_gray = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
 
-#  결과 출력 cv2.imshow(title, img)
-cv2.imshow('grayscale', img_gray)
 
-# 키가 입력될 때 까지 대기
-cv2.waitKey()
-cv2.destroyAllWindows()
 
-# 예제3 이미지 저장하기 imwrite
-
-save_file = './img/dog_gray.jpg'  # 경로 변수 저장
-cv2.imwrite(save_file, img_gray)  # cv2.imwrite( file_path, img )
-
-cv2.imwrite('./img/dog_blurr.jpg', blured)
-
-# 카메라 웹캠 제어
-## 카메라, 웹캠 프레임 읽기
 
 
 
