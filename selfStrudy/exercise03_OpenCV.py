@@ -162,8 +162,6 @@ cv2.destroyAllWindows()
             
             
 
-
-
 # 카메라 웹캠 제어
 ## 카메라, 웹캠 프레임 읽기
 
