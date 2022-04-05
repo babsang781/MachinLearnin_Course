@@ -162,18 +162,77 @@ cv2.destroyAllWindows()
             
             
 
+
+
 # 카메라 웹캠 제어
 ## 카메라, 웹캠 프레임 읽기
 
 
 
+import cv2
+import numpy as np
+
+# 이미지를 읽어서 바이너리 스케일로 변환
+img = cv2.imread('./img/silhouette1.png', cv2.IMREAD_GRAYSCALE)
+_, biimg = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
+
+# 거리변환 --(1)
+dst = cv2.distanceTransform(biimg, cv2.DIST_L2, 5)
+
+# 거리 값을 0-255 범위로 정규화 --(2)
+dst = img.astype(np.float32)
+dst_norm = (dst-dst.min())*(255) / (dst.max()-dst.min())
+
+# 거리 값에 스레시홀드로 완전한 뼈대 찾기 --(3)
+skeleton = cv2.adaptiveThreshold(dst_norm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, -3)
+
+# 결과 출력
+cv2.imshow('origin', img)
+cv2.imshow('dist', dst_norm)
+cv2.imshow('skeleton', skeleton)
+cv2.waiKey(0)
+cv2destroyAllWindows()
 
 
 
 
 
+# 히스토그램 정규화 (histo_normalize.py)*
 
+import cv2
+import numpy as np
+import matplotlib.pylab as plt
 
+#--① 그레이 스케일로 영상 읽기*
+
+img = cv2.imread('./img/dog.jpg', cv2.IMREAD_GRAYSCALE)
+
+#--② 직접 연산한 정규화*
+
+img_f = img.astype(np.float32)
+img_norm = ((img_f - img_f.min()) * (255) / (img_f.max() - img_f.min()))
+img_norm = img_norm.astype(np.uint8)
+
+#--③ OpenCV API를 이용한 정규화*
+
+img_norm2 = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
+
+#--④ 히스토그램 계산*
+
+hist = cv2.calcHist([img], [0], None, [256], [0, 255])
+hist_norm = cv2.calcHist([img_norm], [0], None, [256], [0, 255])
+hist_norm2 = cv2.calcHist([img_norm2], [0], None, [256], [0, 255])
+
+cv2.imshow('Before', img)
+cv2.imshow('Manual', img_norm)
+cv2.imshow('cv2.normalize()', img_norm2)
+
+hists = {'Before' : hist, 'Manual':hist_norm, 'cv2.normalize()':hist_norm2}
+for i, (k, v) in enumerate(hists.items()):
+    plt.subplot(1,3,i+1)
+    plt.title(k)
+    plt.plot(v)
+plt.show()
 
 
 
