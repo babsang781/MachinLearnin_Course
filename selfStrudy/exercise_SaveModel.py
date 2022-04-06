@@ -63,5 +63,3 @@ with open('knn_model.pkl', 'wb') as f :
 with open('iris_colunms.pkl', 'wb')as f2 :
     pickle.dump(iris['feature_names'], f2)
 
-
-
