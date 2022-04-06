@@ -64,8 +64,10 @@ if __name__ == '__main__' : # .py 파일에서 main 함수 역할
 # 연습 페이지 만들어보기
 
 from flask import Flask  # import 
-from flask import request 
+from flask import request, redirect
 import pickle    # 데이터 로딩 / 저장을 위한 모듈 library  import
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)  # 객체 생성
 
@@ -80,18 +82,35 @@ def iris_test() :
     if request.method == 'POST':
         display(request.form)  # 주피터 노트북에서 마지막 print 없이 실행 보여주는 함수 , df 잘 나오는 것은 데이터 형태 그대로 보여주기 때문 // print 는 값만 보여주는 것
         
+        # get 방식은 .args 를 사용 : num1 = request.args['num1'], num2 = request.args['num2'] 이런 형태 변수 입력도 가능
         # 넘어온 값을 전처리 preprocessing(requset.form)
-        
-        return "어서오세요" 
+        df = preprocessing(request.form)
+        pre = model.predict(df)
+        print(pre)
+        return "done~"
+        # 서버 간 이동이 있기 때문에 redirect 방식으로 querystring 을 통해 결과 데이터 전송
+        # return redirect("http://localhost:8081/anisize/result.do?predict="+ str(pre[0])) 
 
 if __name__ == '__main__' :    # 서버 구동 및 host 지정
     app.run(host='localhost', port='5000')
 
 
 
-
-
-
+# 넘어온 값을 전처리하는 함수 작성 
+# 딕셔너리 데이터로 값 저장된 상태
+def preprocessing(data_dic):
+    with open('iris_columns.pkl', 'rb') as f :
+        iris_columns = pickle.load(f)
+    
+    # np.zeros((1,4)) 1행 4열 짜리 0으로 채워진 df 생성, 컬럼 입력
+    df = pd.DataFrame(np.zeros((1, 4)), columns=iris_columns)   
+    
+    df['sepal length (cm)'] = data_dic['sepal_len']
+    df['sepal width (cm)'] = data_dic['sepal_wid']
+    df['petal length (cm)'] = data_dic['petal_len']
+    df['petal width (cm)'] = data_dic['petal_wid']
+    
+    return df
 
 
 
