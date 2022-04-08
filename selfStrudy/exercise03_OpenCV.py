@@ -64,11 +64,15 @@
 # pip install --upgrade pip
 !pip install opencv-python
 
+# 이미지 영상 출력
+
+
+
+## 예제1, file 읽기
+### cv2 가 읽고 read - 보여줌 show ! 
+
 import cv2
 import numpy as np
-
-# 예제1, file 읽기
-## cv2 가 읽고 read - 보여줌 show ! 
 
 img_file ='./img/dog.pg'   # 파일을 표시할 경로
 img= cv2.imread(img_file)    # 이미지 경로(img_file)를 cv2.imread() 로 읽어서 img 에 할당!
@@ -83,11 +87,12 @@ else:
 
 
 
-# 예제2, 흑백 IMREAD_GRAYSCALE 읽기 
-## cv2가 파일을 읽는 다양한 방식 
-
+## 흑백 IMREAD_GRAYSCALE 읽기 
 ### cv2.imread로 파일을 읽어서 담아주는데, 읽기 모드 바꾸기! 
 ### cv2.imread(경로, 읽기모드)
+
+import cv2
+import numpy as np
 
 img_file ='./img/dog.jpg'
 img_gray = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE) 
@@ -115,13 +120,11 @@ cv2.IMREAD_REDUCED_GRAYSCALE_8 : GRAYSCALE + 이미지 크기 1/8
 cv2.IMREAD_REDUCED_COLOR_8 : COLOR + 이미지 크기 1/8
 배경이 투명인 이미지(채널이 4개)를 불러올 경우엔 UNCHANGED를 사용(나중에 따로 다루겠습니다.) 
 
-# 예제3 이미지 저장하기!
-## cv2 가 써서 저장해줌: imwrite ! 
+## 예제3 이미지 저장하기!
+### cv2 가 써서 저장해줌: imwrite ! 
 
 save_file = './img/dog_gray.jpg'  # 경로 변수 저장
 cv2.imwrite(save_file, img_gray)  # cv2.imwrite( file_path, file 변수 )
-
-cv2.imwrite('./img/dog_blurr.jpg', blured)
 
 # 예제4 동영상 및 카메라 프레임 읽기
 ## 동영상 파일이나 연결한 카메라로부터 연속된 이미지 프레임을 읽을 수 있는 API를 제공해줌
@@ -143,31 +146,252 @@ cv2.imwrite('./img/dog_blurr.jpg', blured)
 
 
 
-cap = cv2.VideoCapture(0)
-if cap.isOpened():
+# 캠 연결 코드 
+
+# VideoCapture(0) 함수로 0번 카메라 장치와 연결 - 비디오 객체 cap을 생성
+cap = cv2.VideoCapture(0) 
+
+if cap.isOpened():   # 연결된 캠이 있으면, 
     while True:
-        ret, img = cap.read()
+        
+        # ret 객체 초기화 여부 True / False
+        ret, img = cap.read()    # 카메라 프레임 읽기
         if ret:
-            cv2.imshow('camera', img)
-            if cv2.waitKey(1) != -1:
+            cv2.imshow('camera', img)    # 프레임 이미지 표시 imshow(title, 읽은 프레임)
+            if cv2.waitKey(1) != -1:    # 아무키나  입력하면 꺼짐  / if c == 27: break   ESC 로 끄기
                  break
         else:
             print('no frame')
             break
-else:
-    print("can't open camera.")
+else:             # 연결된 캠이 없으면,  
+    print("can't open camera.")  
     
 cap.release()
 cv2.destroyAllWindows()
             
             
 
+ cap = cv2.VideoCapture(0)  # VideoCapture(0) 함수로 0번 카메라 장치와 연결 - 비디오 객체 cap을 생성
+if cap.isOpened():
+
+    while True:
+        # ret 객체 초기화 여부 True / False
+        ret, frame = cap.read()   # 카메라 프레임 읽기 : img 에 비디오 객체 cap을 읽어서 read() 넣음 =
+        frame = cv2.resize(frame, None, fx = 0.5, fy = 0.5, interpolation = cv2.INTER_AREA)
+
+        cv2.imshow('camera', frame)
+        c = cv2.waitKey(1)  # if c == 27: break   ESC 로 끄기
+        if c == 27:
+            break
+
+else:
+    print("can't open camera.")
+
+cap.release()
+cv2.destroyAllWindows()
+
+# 카메라로 사진 찍기
+
+cap = cv2.VideoCapture(0) 
+
+if cap.isOpened():
+    while True
 
 
-# 카메라 웹캠 제어
-## 카메라, 웹캠 프레임 읽기
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 영상필터
+#### 필터는 원하는 값만 걸러내려고 할 때 사용하는 것
+#### 흐릿 또는 또렷하게 만들기도 하고, edge를 검출하고 edge 의 방향을 알아내는 등 
+#### 객체 인식과 분리의 기본이 되는 정보를 계산하기도 함.
+### 공간영역(spacial domain) 필터 / 주파수 영역 ( frequency domain )
+
+
+
+## 비디오 재생하기  cv2.imshow
+### 프레임 폭 값 읽기 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+### 프레임 폭 수정하기  img = cv2.resize(img, None, fx = 0.5, fy = 0.5, interpolation = cv2.INTER_AREA)  
+### 초당 프레임 수 읽기  fps = cap.get(cv2.CAP_PROP_FPS)
+
+import cv2 
+
+video = "./img/dog.mp4"    #비디오 경로 저장
+
+cap = cv2.VideoCapture(video)    # 비디오 객체 cap(capture) 생성, cv2.VideoCapture ( 경로 )
+
+# 프레임 폭 값 확인하기
+width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+print(f'original size: {width}, {height}')
+
+# 프레임 폭 값 수정하기 ...???
+#cap.set(cv2.CAP_PROP_FRAME_WIDTH, 200)    # 변경할 값으로 set
+#cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 150)   # 변경할 값으로 set
+#width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+#height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+#print(f'revised size: {width}, {height}')
+## 왜 프레임 값 수정이 안 되냥?? 읽기는 되는데 설정이 안 되네
+
+if cap.isOpened():               # 캡쳐 객체 초기화(연결) 확인
+    fps = cap.get(cv2.CAP_PROP_FPS)    # 프레임 수 구하기 
+    delay = int(1000/fps)
+    print("FPS: %f, Delay: %dms" %(fps, delay))
+    
+    while True:
+        ret, img = cap.read()    # 프레임 읽기 cap.read()
+        
+        # 화면 프레임 크기 수정  ## 비율중심 -상대 변경INTER_AREA : ORIGINAL의 50% 사이즈로 수정
+        img = cv2.resize(img, None, fx = 0.5, fy = 0.5, interpolation = cv2.INTER_AREA)   
+
+        if ret:
+            cv2.imshow(video, img)    # 화면에 표시
+            cv2.waitKey(delay)
+            
+            c = cv2.waitKey(1)  # if c == 27: break   ESC 로 끄기
+            if c == 27:
+                break
+        else:
+            break
+else:
+    print("can't open video.")
+cap.release()                    # cap 객체 반환
+cv2.destroyAllWindows()
+
+
+## 캠으로 사진 찍기
+### 특정 키 눌리면 photo.jpg 로 저장! : imwrite
+
+cap = cv2.VideoCapture(0)  # VideoCapture(0) 함수로 0번 카메라 장치와 연결 - 비디오 객체 cap을 생성
+if cap.isOpened():
+
+    while True:
+        # ret 객체 초기화 여부 True / False
+        ret, frame = cap.read()   # 카메라 프레임 읽기 : img 에 비디오 객체 cap을 읽어서 read() 넣음 =
+        frame = cv2.resize(frame, None, fx = 0.5, fy = 0.5, interpolation = cv2.INTER_AREA)
+        
+        # 캠 화면 보여주기 imshow !
+        cv2.imshow('camera', frame)
+        
+        # 제어하기 1. 현재 이미지 저장: 사진찍기!  2. 종료하기! 
+        c = cv2.waitKey(1)
+        if c == 46 :           # 아스키 코드 c == 46: 저장  ' .' 마침표로 이미지 저장
+            cv2.imwrite('photo.jpg', frame)
+            
+        if c == 27:       # 아스키 코드 if c == 27: break   ESC 로 끄기
+            break
+
+            
+else:
+    print("can't open camera.")
+
+cap.release()
+cv2.destroyAllWindows()
+
+## 캠으로 녹화하기: VideoWriter 객체
+### 초당 프레임: fps // 인코딩 포맷: fourcc = cv2.VideoWriter_fourcc(*'DIVX') // 사이즈
+
+import cv2 
+
+cap = cv2.VideoCapture(0)    # 비디오 객체 cap 생성, cv2.VideoCapture ( 경로 )
+if cap.isOpened():
+    
+    # VideoWriter( 경로, 인코딩, fps, size)
+    file_path = "./img/cam_video.mp4"           # 1.비디오 경로 저장
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')    # 2. 인코딩 포맷
+    fps = 25.40                                 # 3. fps 
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    size = (int(width), int(height))            # 4. size 지정
+    out = cv2.VideoWriter(file_path, fourcc, fps, size )  # ** VideoWriter 객체 생성! 
+    
+    # frame 저장 촬영은 역시 반복문으로! 
+    while True:
+        ret, frame = cap.read()
+        
+        if ret:
+            cv2.imshow('camera-recording', frame)
+            out.wirte(frame)
+            if cv2.waitKey(int(1000/fps)1) != -1 :
+                break
+        else:
+            print("no frame")
+            break
+    
+           # c = cv2.waitKey(1)
+           #     if c == 27:       # 아스키 코드 if c == 27: break   ESC 로 끄기
+           #         break
+    out.release()  # VideoWriter 객체 out 종료 
+    
+else:
+    print("can't open camera.")
+
+cap.release()
+cv2.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 스켈레톤 이전 기본 시도 -> 실패
+
+
+
+import cv2
+import numpy as np
+
+# 이미지를 읽어서 바이너리 스케일로 변환
+img = cv2.imread('./img/silhouette1.png', cv2.IMREAD_GRAYSCALE)
+_, biimg = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
+
+dst = cv2.distanceTransform(biimg, cv2.DIST_L2, 5)
+dst = img.astype(np.float32)
+dst_norm = (dst-dst.min())*(255) / (dst.max()-dst.min())
+skeleton = cv2.adaptiveThreshold(dst_norm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, -3)
+
+
+cv2.imshow('origin', img)
+cv2.imshow('dist', dst_norm)
+cv2.imshow('skeleton', skeleton)
+
+cv2.waitKey(3000)
+cv2.destroyAllWindows()
 
 import cv2
 import numpy as np
@@ -184,16 +408,131 @@ dst = img.astype(np.float32)
 dst_norm = (dst-dst.min())*(255) / (dst.max()-dst.min())
 
 # 거리 값에 스레시홀드로 완전한 뼈대 찾기 --(3)
-skeleton = cv2.adaptiveThreshold(dst_norm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, -3)
+skeleton = cv2.adaptiveThreshold(dst_norm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
+                                 cv2.THRESH_BINARY, 7, -3)
 
 # 결과 출력
 cv2.imshow('origin', img)
 cv2.imshow('dist', dst_norm)
 cv2.imshow('skeleton', skeleton)
-cv2.waiKey(0)
-cv2destroyAllWindows()
+cv2.waitKey(3000)
+cv2.destroyAllWindows()
 
 
+
+## 컨볼루션과 블러링 
+### cv2.dilter2D() 함수 사용
+### kernel = np.array
+### blured3 = cv2.filter2D(img, -1, kernel)
+#### convolution 연산은 공간 영역 필터의 핵심, 블러링을 사례로 컨볼루션 연산을 확인 가능n x n 크기의 커널로 주변 요소의 값에 따라 입력값을 영향을 주는 것으로 블러링 필터 작용모든 칸에 반복 => n이 클수록 더 흐릿해짐 
+
+### 예제, 평균 필터를 생성해서 블러 적용
+import cv2
+import numpy as np
+
+img = cv2.imread('./img/dog.jpg')
+
+### 5 x 5 평균필터 커널 생성  25개 셀이라서 0.04를 해주면 합쳐서 1 => 평균 필터
+kernel = np.array( [[0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04]])
+
+### 5 x 5 평균필터 커널 생성(2)
+kernel = np.ones(( 5, 5 ))/ 5**2
+
+### 필터 적용,
+blured = cv2.filter2D(img, -1, kernel)
+
+
+### 3 x 3 평균필터 커널 생성, 필터 적용 
+kernel = np.array( [[0.1, 0.1, 0.1], [0.1, 0.1, 0.1], [0.1, 0.1, 0.1]])
+kernel = np.ones(( 3, 3 ))/ 3**2
+blured2 = cv2.filter2D(img, -1, kernel)
+
+### 10 x 10 가로 평균필터 커널 생성, 필터 적용 
+kernel = np.array( [[0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01]])
+kernel = np.ones(( 10, 10))/ 10**2
+blured3 = cv2.filter2D(img, -1, kernel)
+
+
+###  결과 출력 
+cv2.imshow('origin', img)
+cv2.imshow('avrg blur', blured)
+cv2.imshow('avrg blur2', blured2)
+cv2.imshow('avrg blur3', blured3)
+
+
+### 키가 입력될 때 까지 대기
+cv2.waitKey()
+cv2.destroyAllWindows()
+
+
+
+### 여러 이미지 동시 출력 matplotlib.pyplot
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+img = cv2.imread('./img/dog.jpg')
+
+### 5 x 5 평균필터 커널 생성  25개 셀이라서 0.04를 해주면 합쳐서 1 => 평균 필터
+kernel = np.array( [[0.04, 0.04, 0.04, 0.04, 0.04],[0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04],[0.04, 0.04, 0.04, 0.04, 0.04],
+                    [0.04, 0.04, 0.04, 0.04, 0.04]])
+kernel = np.ones(( 5, 5 ))/ 5**2
+blured = cv2.filter2D(img, -1, kernel)
+
+### 10 x 10 가로 평균필터 커널 생성, 필터 적용 
+kernel = np.array( [[0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01],
+                    [0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01]])
+kernel = np.ones(( 10, 10))/ 10**2
+blured3 = cv2.filter2D(img, -1, kernel)
+
+###  matplotlib.pyplot : 결과 이미지 여러개 하나의 출력 페이지로 출력  
+
+#### 각 이미지 읽기 , img 원본은 맨 처음 읽었음 : 총 4장 
+img5x = blured
+img10x = blured3 
+
+### 원본과 blurr 종류별로 4장을 가로로 나열함
+plt.subplot(1,3,1)              # 1행 4열 중 (1)첫 번째, 
+plt.imshow(img[:,:,::-1])       # 컬러 채널 순서 변경
+plt.xticks([]);plt.yticks([])   # plt 기본 좌표값을 없애주기 위해
+plt.title('original')           # 이미지 타이틀 
+
+plt.subplot(1,3,2)
+plt.imshow(img5x[:,:,::-1])
+plt.xticks([]);plt.yticks([])
+plt.title('blurr5')
+
+plt.subplot(1,3,3)
+plt.imshow(img10x[:,:,::-1])
+plt.xticks([]);plt.yticks([])
+plt.title('blurr10')
+
+
+### 키가 입력될 때 까지 대기
+cv2.waitKey()
+cv2.destroyAllWindows()
 
 
 
@@ -233,57 +572,3 @@ for i, (k, v) in enumerate(hists.items()):
     plt.title(k)
     plt.plot(v)
 plt.show()
-
-
-
-
-
-
-
-# 영상필터
-#### 필터는 원하는 값만 걸러내려고 할 때 사용하는 것
-#### 흐릿 또는 또렷하게 만들기도 하고, edge를 검출하고 edge 의 방향을 알아내는 등 
-#### 객체 인식과 분리의 기본이 되는 정보를 계산하기도 함.
-### 공간영역(spacial domain) 필터 / 주파수 영역 ( frequency domain )
-
-## 컨볼루션과 블러링
-#### convolution 연산은 공간 영역 필터의 핵심, 블러링을 사례로 컨볼루션 연산을 확인 가능
-#### n x n 크기의 커널로 주변 요소의 값에 따라 입력값을 영향을 주는 것으로 블러링 필터 작용
-#### 모든 칸에 반복
-
-### cv2.dilter2D() 함수 사용
-
-### 예제, 평균 필터를 생성해서 블러 적용
-import cv2
-import numpy as np
-img = cv2.imread('./img/dog.jpg')
-
-### 5 x 5 평균필터 커널 생성
-kernel = np.array( [[0.04, 0.04, 0.04, 0.04, 0.04],
-                    [0.04, 0.04, 0.04, 0.04, 0.04],
-                    [0.04, 0.04, 0.04, 0.04, 0.04],
-                    [0.04, 0.04, 0.04, 0.04, 0.04],
-                    [0.04, 0.04, 0.04, 0.04, 0.04]])
-
-### 5 x 5 평균필터 커널 생성(2)
-kernel = np.ones(( 5, 5 ))/ 5**2
-
-### 필터 적용,
-blured = cv2.filter2D(img, -1, kernel)
-
-###  결과 출력 
-cv2.imshow('origin', img)
-cv2.imshow('avrg blur', blured)
-
-### 키가 입력될 때 까지 대기
-cv2.waitKey()
-cv2.destroyAllWindows()
-
-
-
-
-
-
-
-
-
