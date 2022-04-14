@@ -1,0 +1,12 @@
+#batch >> 한 번에 처리하는 수
+#epochs >> 반복횟수
+
+- 기존 데이터 추가 학습 --weights 뒤에 학습된 모델 쓰기
+python train.py --data ./data/data.yaml --cfg ./models/yolov5x.yaml --weights ./runs/train/dog-v5x-10/weights/best.pt --batch 6 --worker 4 --epochs 100 --name dog-x-110
+
+-학습 모델로 detection 해보기
+python detect.py --weights ./runs/train/dog-v5x-10/weights/best.pt --img 640 --conf 0.5 --source ./test/
+
+-데이터 수정 후 x 가져와서 e50번만 테스트
+python train.py --data ./data/data.yaml --cfg ./models/yolov5x.yaml --weights yolov5x.pt --batch 6 --worker 4 --epochs 50 --name dog650-v5x-50
+
